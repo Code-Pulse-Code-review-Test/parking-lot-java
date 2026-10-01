@@ -9,6 +9,7 @@ import java.util.List;
 public class ParkingLot {
     private final List<Slot> slots = new ArrayList<>();
     private final FeeCalculator calculator = new FeeCalculator();
+    private final PassManager passes = new PassManager();
     private final String name;
     private long earnings;
     private int totalVisits;
@@ -43,7 +44,10 @@ public class ParkingLot {
     public long leave(String plate, LocalDateTime time) {
         for (Slot s : slots) {
             if (!s.isFree() && s.getVehicle().getPlate().equals(plate)) {
-                long fee = calculator.fee(s.getVehicle().getType(), s.getParkedAt(), time);
+                long fee = 0;
+                if (!passes.hasPass(plate, time.toLocalDate())) {
+                    fee = calculator.fee(s.getVehicle().getType(), s.getParkedAt(), time);
+                }
                 s.leave();
                 earnings += fee;
                 return fee;
@@ -60,6 +64,10 @@ public class ParkingLot {
             }
         }
         return count;
+    }
+
+    public PassManager getPasses() {
+        return passes;
     }
 
     public long getEarnings() {
